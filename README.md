@@ -1,4 +1,4 @@
-#Minesweeper-JavaFX
+# Minesweeper-JavaFX
 
 This is an implementation of the game Minesweeper in JavaFX.
 
