@@ -6,7 +6,7 @@ This is an implementation of the game Minesweeper in JavaFX.
 
 - [x] Implement Basic Functionality for Board (i.e. Generate / Open Square)
 - [x] Implement Basic GUI (Squares + Numbers)
-- [ ] Implement Basic GUI Inputs (Open Square, Flag)
+- [x] Implement Basic GUI Inputs (Open Square, Flag)
 - [ ] Implement Win / Lose Functionality
 - [ ] Implement "Chording"
 - [ ] Implement Timing + Click Counting

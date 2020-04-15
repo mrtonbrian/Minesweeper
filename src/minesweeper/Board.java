@@ -14,6 +14,8 @@ public class Board {
     private boolean[][] visibleBoard;
     private boolean[][] flaggedBoard;
 
+    private boolean gameOver;
+
     public Board(int rows, int columns, int mineCount) {
         // Argument Checking
         if (mineCount >= (rows * columns)) {
@@ -57,11 +59,19 @@ public class Board {
 
     public void openSquare(int row, int col, boolean ignoreStartCheck) {
         // If Square Already Visited, Exit
-        if (visibleBoard[row][col]) {
+        if (visibleBoard[row][col] || flaggedBoard[row][col]) {
             return;
         }
         // Mark Square Visited
         visibleBoard[row][col] = true;
+
+        // Set Square to -2 If it is Death Bomb
+        if (board[row][col] == -1) {
+            board[row][col] = -2;
+            gameOver = true;
+            return;
+        }
+
         // Stop If Square Is Adjacent To Bombs
         if (board[row][col] != 0 && !ignoreStartCheck) {
             return;
@@ -81,6 +91,12 @@ public class Board {
 
     public void removeFlag(int square) { addFlag(toRow(square), toCol(square)); }
     public void removeFlag(int row, int column) { flaggedBoard[row][column] = false; }
+
+    public boolean isFlagged(int square) { return isFlagged(toRow(square), toCol(square)); }
+    public boolean isFlagged(int row, int col) { return flaggedBoard[row][col]; }
+
+    public void toggleFlag(int square) { toggleFlag(toRow(square), toCol(square)); }
+    public void toggleFlag(int row, int col) { if (!isVisible(row, col)) if (isFlagged(row, col)) removeFlag(row, col); else addFlag(row, col); }
 
     private int countSurroundingMines(int square) {
         return countSurroundingMines(toRow(square), toCol(square));
@@ -144,6 +160,12 @@ public class Board {
         this.board = new int[rows][columns];
         this.visibleBoard = new boolean[rows][columns];
         this.flaggedBoard = new boolean[rows][columns];
+
+        gameOver = false;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
     }
 
     public void printBoard() {
