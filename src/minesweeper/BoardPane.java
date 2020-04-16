@@ -32,7 +32,11 @@ public class BoardPane extends GridPane {
                 squares[r][c].setOnMouseClicked(e -> {
                     if (board.getGameState() == Globals.GameState.IN_PROGRESS || board.getGameState() == Globals.GameState.NOT_STARTED) {
                         if (e.getButton() == MouseButton.PRIMARY) {
-                            board.openSquare(finalR, finalC);
+                            if (board.isVisible(finalR, finalC)) {
+                                board.chordSquare(finalR, finalC);
+                            } else {
+                                board.openSquare(finalR, finalC);
+                            }
                             updateDisplay();
                         } else if (e.getButton() == MouseButton.SECONDARY) {
                             board.toggleFlag(finalR, finalC);

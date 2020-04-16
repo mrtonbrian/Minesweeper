@@ -13,16 +13,20 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Board board = new Board(10, 10, 8);
+        Board board = new Board(19, 30, 0.2d);
 
         boardPane = new BoardPane(board);
         boardPane.setupBoard();
 
-        stage.setScene(new Scene(boardPane, 300, 300));
+        stage.setScene(new Scene(boardPane, calculateBoardPaneSize(board.getColumns()), calculateBoardPaneSize(board.getRows())));
         stage.sizeToScene();
         stage.show();
 
         stage.setMinHeight(stage.getHeight());
         stage.setMinWidth(stage.getWidth());
+    }
+
+    int calculateBoardPaneSize(int quantity) {
+        return quantity * 15 * 2;
     }
 }

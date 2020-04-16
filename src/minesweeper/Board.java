@@ -31,6 +31,18 @@ public class Board {
         reset();
     }
 
+    public Board(int rows, int columns, double density) {
+        if (density >= 1) {
+            throw new IllegalArgumentException("There Must Be Less Mines Than Squares");
+        }
+        this.rows = rows;
+        this.columns = columns;
+        this.mineCount = (int) (density * rows * columns);
+        System.out.println(mineCount);
+
+        reset();
+    }
+
     // Note That Populate Board Excludes 1 Square (First Square) From Being A Mine
     public void populateBoard(int rowExclude, int colExclude) {
         List<Integer> allSquares = IntStream.range(0, rows * columns).boxed().collect(Collectors.toList());
@@ -77,6 +89,15 @@ public class Board {
         if (board[row][col] == -1) {
             board[row][col] = -2;
             gameState = Globals.GameState.LOSS;
+
+            // When Dead, Reveal All Bombs
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < columns; c++) {
+                    if (board[r][c] < 0) {
+                        visibleBoard[r][c] = true;
+                    }
+                }
+            }
             return;
         }
 
@@ -95,6 +116,32 @@ public class Board {
             for (int yChange : dy) {
                 if ((isInbounds(row + yChange, col + xChange))) {
                     openSquare(row + yChange, col + xChange, false);
+                }
+            }
+        }
+    }
+
+    public void chordSquare(int square) {
+        chordSquare(toRow(square),toCol(square));
+    }
+
+    public void chordSquare(int row, int col) {
+        if (isVisible(row, col) && getRowCol(row, col) >= 0) {
+            int surroundingFlaggedSquares = 0;
+            for (int xChange : dx) {
+                for (int yChange : dy) {
+                    if ((isInbounds(row + yChange, col + xChange)) && isFlagged(row + yChange,col + xChange)) {
+                        surroundingFlaggedSquares++;
+                    }
+                }
+            }
+            if (surroundingFlaggedSquares == getRowCol(row, col)) {
+                for (int xChange : dx) {
+                    for (int yChange : dy) {
+                        if ((isInbounds(row + yChange, col + xChange))) {
+                            openSquare(row + yChange, col + xChange, false);
+                        }
+                    }
                 }
             }
         }
@@ -142,7 +189,7 @@ public class Board {
         for (int xChange : dx) {
             for (int yChange : dy) {
                 if ((isInbounds(row + yChange, col + xChange))
-                        && board[row + yChange][col + xChange] == -1) {
+                        && getRowCol(row + yChange,col + xChange) == -1) {
                     amountOfMines++;
                 }
             }
@@ -180,15 +227,15 @@ public class Board {
     }
 
     private int rowColToSquare(int row, int col) {
-        return rows * row + col;
+        return columns * row + col;
     }
 
     private int toCol(int square) {
-        return square % rows;
+        return square % columns;
     }
 
     private int toRow(int square) {
-        return square / rows;
+        return square / columns;
     }
 
     public void reset() {
@@ -216,9 +263,9 @@ public class Board {
     public void printBoard() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < columns; c++) {
-                if (visibleBoard[r][c]) {
-                    if (board[r][c] != -1) {
-                        System.out.print(board[r][c] + " ");
+                if (isVisible(r,c)) {
+                    if (getRowCol(r, c) != -1) {
+                        System.out.print(getRowCol(r,c) + " ");
                     } else {
                         System.out.print("* ");
                     }

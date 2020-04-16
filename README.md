@@ -8,7 +8,7 @@ This is an implementation of the game Minesweeper in JavaFX.
 - [x] Implement Basic GUI (Squares + Numbers)
 - [x] Implement Basic GUI Inputs (Open Square, Flag)
 - [x] Implement Win / Lose Functionality
-- [ ] Implement "Chording"
+- [x] Implement "Chording"
 - [ ] Implement Timing + Click Counting
 - [ ] Implement Reset Functionality
 - [ ] Implement A Better Interface
