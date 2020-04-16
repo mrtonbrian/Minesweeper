@@ -1,17 +1,29 @@
 package minesweeper;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 
 public class BoardPane extends GridPane {
-    ImageSquare[][] squares;
-    Board board;
+    private ImageSquare[][] squares;
+    private Board board;
+    private int numClicks;
+    private boolean shownEndScreen;
 
     BoardPane(Board board) {
         setBoard(board);
+
+        resetBoardPane();
+    }
+
+    public void resetBoardPane() {
+        this.getChildren().clear();
         setupBoard();
+        board.reset();
+        numClicks = 0;
+        shownEndScreen = false;
     }
 
     public void setBoard(Board board) {
@@ -20,6 +32,10 @@ public class BoardPane extends GridPane {
 
     public void setupBoard() {
         squares = new ImageSquare[board.getRows()][board.getColumns()];
+
+        this.setOnMouseClicked(e -> {
+            numClicks++;
+        });
 
         for (int r = 0; r < board.getRows(); r++) {
             for (int c = 0; c < board.getColumns(); c++) {
@@ -87,18 +103,20 @@ public class BoardPane extends GridPane {
             }
         }
 
-        if (board.getGameState() == Globals.GameState.LOSS) {
+        if (!shownEndScreen && board.getGameState() == Globals.GameState.LOSS) {
             Alert gameLoss = new Alert(Alert.AlertType.ERROR);
             gameLoss.setTitle("Game Over!");
             gameLoss.setHeaderText("You Clicked On A Bomb :(");
-            gameLoss.setContentText("Click on reset to play again :)");
-            gameLoss.showAndWait();
-        } else if (board.getGameState() == Globals.GameState.WIN) {
+            gameLoss.setContentText(String.format("You Lasted %.2f Seconds With %d Clicks\nClick on reset to play again :)", board.getGameDuration() / 1000., numClicks));
+            Platform.runLater(gameLoss::showAndWait);
+            shownEndScreen = true;
+        } else if (!shownEndScreen && board.getGameState() == Globals.GameState.WIN) {
             Alert gameWin = new Alert(Alert.AlertType.INFORMATION);
             gameWin.setTitle("Game Over");
             gameWin.setHeaderText("You Win!");
-            gameWin.setContentText("Click on reset to play again :)");
-            gameWin.showAndWait();
+            gameWin.setContentText(String.format("You Finished in %.2f Seconds With %d Clicks\nClick on reset to play again :)", board.getGameDuration() / 1000., numClicks));
+            Platform.runLater(gameWin::showAndWait);
+            shownEndScreen = true;
         }
     }
 

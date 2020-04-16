@@ -9,8 +9,8 @@ This is an implementation of the game Minesweeper in JavaFX.
 - [x] Implement Basic GUI Inputs (Open Square, Flag)
 - [x] Implement Win / Lose Functionality
 - [x] Implement "Chording"
-- [ ] Implement Timing + Click Counting
-- [ ] Implement Reset Functionality
+- [x] Implement Timing + Click Counting
+- [x] Implement Reset Functionality
 - [ ] Implement A Better Interface
 - [ ] Implement User-Definable Games (Size, Density, etc.)
 - [ ] Create "Human-like" Solver

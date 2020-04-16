@@ -18,6 +18,8 @@ public class Board {
 
     private int openedSquares;
     private Globals.GameState gameState;
+    private long gameStartTime;
+    private long gameEndTime;
 
     public Board(int rows, int columns, int mineCount) {
         // Argument Checking
@@ -62,6 +64,8 @@ public class Board {
             board[toRow(allSquares.get(i))][toCol(allSquares.get(i))] = countSurroundingMines(allSquares.get(i));
             i++;
         }
+
+        gameStartTime = System.currentTimeMillis();
     }
 
     public void openSquare(int square) {
@@ -77,6 +81,9 @@ public class Board {
         if (gameState == Globals.GameState.NOT_STARTED) {
             gameState = Globals.GameState.IN_PROGRESS;
             populateBoard(row, col);
+        } else if (gameState != Globals.GameState.IN_PROGRESS) {
+            // Either Won / Lost Already, Return Early
+            return;
         }
         // If Square Already Visited, Exit
         if (visibleBoard[row][col] || flaggedBoard[row][col]) {
@@ -98,6 +105,8 @@ public class Board {
                     }
                 }
             }
+
+            gameEndTime = System.currentTimeMillis();
             return;
         }
 
@@ -246,6 +255,8 @@ public class Board {
         openedSquares = 0;
 
         gameState = Globals.GameState.NOT_STARTED;
+        gameStartTime = -1;
+        gameEndTime = -1;
     }
 
     public Globals.GameState getGameState() {
@@ -257,7 +268,23 @@ public class Board {
         if (openedSquares == (rows * columns) - mineCount) {
             // Set gameState to win
             gameState = Globals.GameState.WIN;
+
+            // If We Haven't Set Game End Time Yet, Set It
+            if (gameEndTime == -1) {
+                gameEndTime = System.currentTimeMillis();
+            }
         }
+    }
+
+    public long getGameDuration() {
+        if (gameState == Globals.GameState.IN_PROGRESS || gameState == Globals.GameState.NOT_STARTED) {
+            return -1;
+        }
+        return gameEndTime - gameStartTime;
+    }
+
+    public long timeSinceStart() {
+        return System.currentTimeMillis() - gameStartTime;
     }
 
     public void printBoard() {
