@@ -1,7 +1,7 @@
 package minesweeper;
 
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 
@@ -30,12 +30,14 @@ public class BoardPane extends GridPane {
                 int finalR = r;
                 int finalC = c;
                 squares[r][c].setOnMouseClicked(e -> {
-                    if (e.getButton() == MouseButton.PRIMARY) {
-                        board.openSquare(finalR, finalC);
-                        updateDisplay();
-                    } else if (e.getButton() == MouseButton.SECONDARY) {
-                        board.toggleFlag(finalR, finalC);
-                        updateDisplay();
+                    if (board.getGameState() == Globals.GameState.IN_PROGRESS || board.getGameState() == Globals.GameState.NOT_STARTED) {
+                        if (e.getButton() == MouseButton.PRIMARY) {
+                            board.openSquare(finalR, finalC);
+                            updateDisplay();
+                        } else if (e.getButton() == MouseButton.SECONDARY) {
+                            board.toggleFlag(finalR, finalC);
+                            updateDisplay();
+                        }
                     }
                 });
                 getChildren().add(squares[r][c]);
@@ -51,7 +53,7 @@ public class BoardPane extends GridPane {
                             Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                             ));
                 } else if (board.isFlagged(r, c)) {
-                    if (board.isGameOver() && board.getRowCol(r, c) >= 0) {
+                    if (board.getGameState() == Globals.GameState.LOSS && board.getRowCol(r, c) >= 0) {
                         squares[r][c].setImage(new Image("file:images/bombmisflagged.gif"),
                                 Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                                 ));
@@ -79,6 +81,20 @@ public class BoardPane extends GridPane {
                     }
                 }
             }
+        }
+
+        if (board.getGameState() == Globals.GameState.LOSS) {
+            Alert gameLoss = new Alert(Alert.AlertType.ERROR);
+            gameLoss.setTitle("Game Over!");
+            gameLoss.setHeaderText("You Clicked On A Bomb :(");
+            gameLoss.setContentText("Click on reset to play again :)");
+            gameLoss.showAndWait();
+        } else if (board.getGameState() == Globals.GameState.WIN) {
+            Alert gameWin = new Alert(Alert.AlertType.INFORMATION);
+            gameWin.setTitle("Game Over");
+            gameWin.setHeaderText("You Win!");
+            gameWin.setContentText("Click on reset to play again :)");
+            gameWin.showAndWait();
         }
     }
 

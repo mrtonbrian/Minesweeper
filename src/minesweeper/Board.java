@@ -9,12 +9,15 @@ public class Board {
     private static final int[] dx = new int[]{-1, 0, 1};
     private static final int[] dy = new int[]{-1, 0, 1};
 
-    private int rows, columns, mineCount;
+    private final int rows;
+    private final int columns;
+    private final int mineCount;
     private int[][] board;
     private boolean[][] visibleBoard;
     private boolean[][] flaggedBoard;
 
-    private boolean gameOver;
+    private int openedSquares;
+    private Globals.GameState gameState;
 
     public Board(int rows, int columns, int mineCount) {
         // Argument Checking
@@ -58,6 +61,11 @@ public class Board {
     }
 
     public void openSquare(int row, int col, boolean ignoreStartCheck) {
+        // Initialize Game if We Haven't Already
+        if (gameState == Globals.GameState.NOT_STARTED) {
+            gameState = Globals.GameState.IN_PROGRESS;
+            populateBoard(row, col);
+        }
         // If Square Already Visited, Exit
         if (visibleBoard[row][col] || flaggedBoard[row][col]) {
             return;
@@ -68,9 +76,15 @@ public class Board {
         // Set Square to -2 If it is Death Bomb
         if (board[row][col] == -1) {
             board[row][col] = -2;
-            gameOver = true;
+            gameState = Globals.GameState.LOSS;
             return;
         }
+
+        // If Square was Able to Be Opened, Increment OpenedSquares
+        openedSquares++;
+
+        // Check Win
+        checkWin();
 
         // Stop If Square Is Adjacent To Bombs
         if (board[row][col] != 0 && !ignoreStartCheck) {
@@ -86,17 +100,38 @@ public class Board {
         }
     }
 
-    public void addFlag(int square) { addFlag(toRow(square), toCol(square)); }
-    public void addFlag(int row, int column) { flaggedBoard[row][column] = true; }
+    public void addFlag(int square) {
+        addFlag(toRow(square), toCol(square));
+    }
 
-    public void removeFlag(int square) { addFlag(toRow(square), toCol(square)); }
-    public void removeFlag(int row, int column) { flaggedBoard[row][column] = false; }
+    public void addFlag(int row, int column) {
+        flaggedBoard[row][column] = true;
+    }
 
-    public boolean isFlagged(int square) { return isFlagged(toRow(square), toCol(square)); }
-    public boolean isFlagged(int row, int col) { return flaggedBoard[row][col]; }
+    public void removeFlag(int square) {
+        addFlag(toRow(square), toCol(square));
+    }
 
-    public void toggleFlag(int square) { toggleFlag(toRow(square), toCol(square)); }
-    public void toggleFlag(int row, int col) { if (!isVisible(row, col)) if (isFlagged(row, col)) removeFlag(row, col); else addFlag(row, col); }
+    public void removeFlag(int row, int column) {
+        flaggedBoard[row][column] = false;
+    }
+
+    public boolean isFlagged(int square) {
+        return isFlagged(toRow(square), toCol(square));
+    }
+
+    public boolean isFlagged(int row, int col) {
+        return flaggedBoard[row][col];
+    }
+
+    public void toggleFlag(int square) {
+        toggleFlag(toRow(square), toCol(square));
+    }
+
+    public void toggleFlag(int row, int col) {
+        if (!isVisible(row, col)) if (isFlagged(row, col)) removeFlag(row, col);
+        else addFlag(row, col);
+    }
 
     private int countSurroundingMines(int square) {
         return countSurroundingMines(toRow(square), toCol(square));
@@ -161,11 +196,21 @@ public class Board {
         this.visibleBoard = new boolean[rows][columns];
         this.flaggedBoard = new boolean[rows][columns];
 
-        gameOver = false;
+        openedSquares = 0;
+
+        gameState = Globals.GameState.NOT_STARTED;
     }
 
-    public boolean isGameOver() {
-        return gameOver;
+    public Globals.GameState getGameState() {
+        return gameState;
+    }
+
+    private void checkWin() {
+        // If We Have Opened Every Square
+        if (openedSquares == (rows * columns) - mineCount) {
+            // Set gameState to win
+            gameState = Globals.GameState.WIN;
+        }
     }
 
     public void printBoard() {
