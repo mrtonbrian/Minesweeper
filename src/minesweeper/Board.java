@@ -1,5 +1,9 @@
 package minesweeper;
 
+import javafx.util.Pair;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,15 +72,15 @@ public class Board {
         gameStartTime = System.currentTimeMillis();
     }
 
-    public void openSquare(int square) {
-        openSquare(toRow(square), toCol(square));
+    public void openSquare(int square, ArrayList<Pair<Integer, Integer>> squaresOpened) {
+        openSquare(toRow(square), toCol(square), squaresOpened);
     }
 
-    public void openSquare(int row, int col) {
-        openSquare(row, col, false);
+    public void openSquare(int row, int col, ArrayList<Pair<Integer, Integer>> squaresOpened) {
+        openSquare(row, col, squaresOpened, false);
     }
 
-    public void openSquare(int row, int col, boolean ignoreStartCheck) {
+    public void openSquare(int row, int col, ArrayList<Pair<Integer, Integer>> squaresOpened, boolean ignoreStartCheck) {
         // Initialize Game if We Haven't Already
         if (gameState == Globals.GameState.NOT_STARTED) {
             gameState = Globals.GameState.IN_PROGRESS;
@@ -91,6 +95,8 @@ public class Board {
         }
         // Mark Square Visited
         visibleBoard[row][col] = true;
+        // Add Square To OpenedSquares
+        squaresOpened.add(new Pair<>(row, col));
 
         // Set Square to -2 If it is Death Bomb
         if (board[row][col] == -1) {
@@ -124,17 +130,17 @@ public class Board {
         for (int xChange : dx) {
             for (int yChange : dy) {
                 if ((isInbounds(row + yChange, col + xChange))) {
-                    openSquare(row + yChange, col + xChange, false);
+                    openSquare(row + yChange, col + xChange, squaresOpened, false);
                 }
             }
         }
     }
 
-    public void chordSquare(int square) {
-        chordSquare(toRow(square),toCol(square));
+    public void chordSquare(int square, ArrayList<Pair<Integer, Integer>> openedSquares) {
+        chordSquare(toRow(square),toCol(square), openedSquares);
     }
 
-    public void chordSquare(int row, int col) {
+    public void chordSquare(int row, int col, ArrayList<Pair<Integer, Integer>> openedSquares) {
         if (isVisible(row, col) && getRowCol(row, col) >= 0) {
             int surroundingFlaggedSquares = 0;
             for (int xChange : dx) {
@@ -148,7 +154,7 @@ public class Board {
                 for (int xChange : dx) {
                     for (int yChange : dy) {
                         if ((isInbounds(row + yChange, col + xChange))) {
-                            openSquare(row + yChange, col + xChange, false);
+                            openSquare(row + yChange, col + xChange, openedSquares, false);
                         }
                     }
                 }

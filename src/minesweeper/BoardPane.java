@@ -5,6 +5,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
+import javafx.util.Pair;
+
+import java.util.ArrayList;
 
 public class BoardPane extends GridPane {
     private ImageSquare[][] squares;
@@ -33,7 +36,7 @@ public class BoardPane extends GridPane {
     public void setupBoard() {
         squares = new ImageSquare[board.getRows()][board.getColumns()];
 
-        this.setOnMouseClicked(e -> {
+        this.setOnMousePressed(e -> {
             numClicks++;
         });
 
@@ -45,18 +48,20 @@ public class BoardPane extends GridPane {
 
                 int finalR = r;
                 int finalC = c;
-                squares[r][c].setOnMouseClicked(e -> {
+                squares[r][c].setOnMousePressed(e -> {
                     if (board.getGameState() == Globals.GameState.IN_PROGRESS || board.getGameState() == Globals.GameState.NOT_STARTED) {
+                        ArrayList<Pair<Integer, Integer>> squares = new ArrayList<>();
                         if (e.getButton() == MouseButton.PRIMARY) {
                             if (board.isVisible(finalR, finalC)) {
-                                board.chordSquare(finalR, finalC);
+                                board.chordSquare(finalR, finalC, squares);
                             } else {
-                                board.openSquare(finalR, finalC);
+                                board.openSquare(finalR, finalC, squares);
                             }
-                            updateDisplay();
+                            updateDisplay(squares);
                         } else if (e.getButton() == MouseButton.SECONDARY) {
                             board.toggleFlag(finalR, finalC);
-                            updateDisplay();
+                            squares.add(new Pair<>(finalR, finalC));
+                            updateDisplay(squares);
                         }
                     }
                 });
@@ -65,39 +70,41 @@ public class BoardPane extends GridPane {
         }
     }
 
-    public void updateDisplay() {
-        for (int r = 0; r < board.getRows(); r++) {
-            for (int c = 0; c < board.getColumns(); c++) {
-                if (!board.isVisible(r, c) && !board.isFlagged(r, c)) {
-                    squares[r][c].setImage(new Image("file:images/blank.gif"),
+    public void updateDisplay(ArrayList<Pair<Integer, Integer>> squaresToUpdate) {
+        for (Pair<Integer, Integer> square : squaresToUpdate) {
+            // We're using Pair<> like std::pair
+            // Note that Key / Value Syntax Doesn't Really Make Sense though
+            int r = square.getKey();
+            int c = square.getValue();
+            if (!board.isVisible(r, c) && !board.isFlagged(r, c)) {
+                squares[r][c].setImage(new Image("file:images/blank.gif"),
+                        Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
+                        ));
+            } else if (board.isFlagged(r, c)) {
+                if (board.getGameState() == Globals.GameState.LOSS && board.getRowCol(r, c) >= 0) {
+                    squares[r][c].setImage(new Image("file:images/bombmisflagged.gif"),
                             Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                             ));
-                } else if (board.isFlagged(r, c)) {
-                    if (board.getGameState() == Globals.GameState.LOSS && board.getRowCol(r, c) >= 0) {
-                        squares[r][c].setImage(new Image("file:images/bombmisflagged.gif"),
-                                Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
-                                ));
-                    } else {
-                        squares[r][c].setImage(new Image("file:images/bombflagged.gif"),
-                                Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
-                                ));
-                    }
                 } else {
-                    if (board.getRowCol(r, c) >= 0) {
-                        // Using concat because string.format() does not seem to work
-                        squares[r][c].setImage(new Image("file:images/open" + board.getRowCol(r, c) + ".gif"),
+                    squares[r][c].setImage(new Image("file:images/bombflagged.gif"),
+                            Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
+                            ));
+                }
+            } else {
+                if (board.getRowCol(r, c) >= 0) {
+                    // Using concat because string.format() does not seem to work
+                    squares[r][c].setImage(new Image("file:images/open" + board.getRowCol(r, c) + ".gif"),
+                            Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
+                            ));
+                } else {
+                    if (board.getRowCol(r, c) == -2) {
+                        squares[r][c].setImage(new Image("file:images/bombdeath.gif"),
                                 Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                                 ));
                     } else {
-                        if (board.getRowCol(r, c) == -2) {
-                            squares[r][c].setImage(new Image("file:images/bombdeath.gif"),
-                                    Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
-                                    ));
-                        } else {
-                            squares[r][c].setImage(new Image("file:images/bombrevealed.gif"),
-                                    Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
-                                    ));
-                        }
+                        squares[r][c].setImage(new Image("file:images/bombrevealed.gif"),
+                                Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
+                                ));
                     }
                 }
             }
@@ -123,12 +130,22 @@ public class BoardPane extends GridPane {
     @Override
     public void setWidth(double width) {
         super.setWidth(width);
-        updateDisplay();
+        resizeBoard();
     }
 
     @Override
     public void setHeight(double height) {
         super.setHeight(height);
-        updateDisplay();
+        resizeBoard();
+    }
+
+    private void resizeBoard() {
+        ArrayList<Pair<Integer, Integer>> squares = new ArrayList<>();
+        for (int r = 0; r < board.getRows(); r++) {
+            for (int c = 0; c < board.getColumns(); c++) {
+                squares.add(new Pair<>(r, c));
+            }
+        }
+        updateDisplay(squares);
     }
 }
