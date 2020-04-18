@@ -8,6 +8,12 @@ public class ImageSquare extends ImageView {
         super(image);
     }
 
+    ImageSquare(Image image, int size) {
+        super(image);
+        setFitHeight(size);
+        setFitWidth(size);
+    }
+
     public void setImage(Image image, int size) {
         setImage(image);
         setFitWidth(size);

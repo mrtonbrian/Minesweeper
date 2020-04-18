@@ -1,6 +1,7 @@
 package minesweeper;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -8,17 +9,55 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class BoardPane extends GridPane {
+    public static HashMap<String, Image> IMAGES = null;
     private ImageSquare[][] squares;
     private Board board;
     private int numClicks;
     private boolean shownEndScreen;
 
     BoardPane(Board board) {
+        initializeImages();
+
         setBoard(board);
 
         resetBoardPane();
+
+        ChangeListener<Number> heightListener = (observableValue, number, t1) -> {
+            if (Math.min((int) (getWidth() / board.getColumns()), (int) (t1.intValue() / board.getRows())) !=
+                    Math.min((int) (getWidth() / board.getColumns()), (int) (number.intValue() / board.getRows())
+                    )) {
+                resizeBoard();
+            }
+        };
+
+        ChangeListener<Number> widthListener = (observableValue, number, t1) -> {
+            if (Math.min((t1.intValue() / board.getColumns()), (int) (getHeight() / board.getRows())) !=
+                    Math.min((int) (number.intValue() / board.getColumns()), (int) (getHeight() / board.getRows())
+                    )) {
+                resizeBoard();
+            }
+        };
+
+        this.widthProperty().addListener(widthListener);
+        this.heightProperty().addListener(heightListener);
+    }
+
+    private void initializeImages() {
+        if (IMAGES == null) {
+            IMAGES = new HashMap<>();
+            IMAGES.put("BLANK", new Image("file:images/blank.gif"));
+            IMAGES.put("MISFLAGGED", new Image("file:images/bombmisflagged.gif"));
+            IMAGES.put("FLAGGED", new Image("file:images/bombflagged.gif"));
+            IMAGES.put("DEATH", new Image("file:images/bombdeath.gif"));
+            IMAGES.put("REVEALED", new Image("file:images/bombrevealed.gif"));
+
+            for (int i = 0; i <= 8; i++) {
+                IMAGES.put("OPEN" + i, new Image("file:images/open" + i + ".gif"));
+            }
+        }
     }
 
     public void resetBoardPane() {
@@ -42,7 +81,7 @@ public class BoardPane extends GridPane {
 
         for (int r = 0; r < board.getRows(); r++) {
             for (int c = 0; c < board.getColumns(); c++) {
-                squares[r][c] = new ImageSquare(new Image("file:images/blank.gif"));
+                squares[r][c] = new ImageSquare(IMAGES.get("BLANK"), Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())));
                 GridPane.setRowIndex(squares[r][c], r);
                 GridPane.setColumnIndex(squares[r][c], c);
 
@@ -77,32 +116,31 @@ public class BoardPane extends GridPane {
             int r = square.getKey();
             int c = square.getValue();
             if (!board.isVisible(r, c) && !board.isFlagged(r, c)) {
-                squares[r][c].setImage(new Image("file:images/blank.gif"),
+                squares[r][c].setImage(IMAGES.get("BLANK"),
                         Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                         ));
             } else if (board.isFlagged(r, c)) {
                 if (board.getGameState() == Globals.GameState.LOSS && board.getRowCol(r, c) >= 0) {
-                    squares[r][c].setImage(new Image("file:images/bombmisflagged.gif"),
+                    squares[r][c].setImage(IMAGES.get("MISFLAGGED"),
                             Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                             ));
                 } else {
-                    squares[r][c].setImage(new Image("file:images/bombflagged.gif"),
+                    squares[r][c].setImage(IMAGES.get("FLAGGED"),
                             Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                             ));
                 }
             } else {
                 if (board.getRowCol(r, c) >= 0) {
-                    // Using concat because string.format() does not seem to work
-                    squares[r][c].setImage(new Image("file:images/open" + board.getRowCol(r, c) + ".gif"),
+                    squares[r][c].setImage(IMAGES.get("OPEN" + board.getRowCol(r, c)),
                             Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                             ));
                 } else {
                     if (board.getRowCol(r, c) == -2) {
-                        squares[r][c].setImage(new Image("file:images/bombdeath.gif"),
+                        squares[r][c].setImage(IMAGES.get("DEATH"),
                                 Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                                 ));
                     } else {
-                        squares[r][c].setImage(new Image("file:images/bombrevealed.gif"),
+                        squares[r][c].setImage(IMAGES.get("REVEALED"),
                                 Math.min((int) (getWidth() / board.getColumns()), (int) (getHeight() / board.getRows())
                                 ));
                     }
@@ -131,13 +169,11 @@ public class BoardPane extends GridPane {
     @Override
     public void setWidth(double width) {
         super.setWidth(width);
-        resizeBoard();
     }
 
     @Override
     public void setHeight(double height) {
         super.setHeight(height);
-        resizeBoard();
     }
 
     private void resizeBoard() {
