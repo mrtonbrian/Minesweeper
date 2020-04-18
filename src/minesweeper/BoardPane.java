@@ -127,6 +127,7 @@ public class BoardPane extends GridPane {
         }
     }
 
+
     @Override
     public void setWidth(double width) {
         super.setWidth(width);

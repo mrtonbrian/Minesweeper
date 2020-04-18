@@ -15,4 +15,6 @@ This is an implementation of the game Minesweeper in JavaFX.
 - [ ] Implement User-Definable Games (Size, Density, etc.)
 - [ ] Create "Human-like" Solver
 - [ ] Create SAT-based Solver
+- [ ] Add Animation To Solving
+- [ ] Port To C++ / Qt?
 - [ ] Profit?
